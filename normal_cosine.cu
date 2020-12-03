@@ -3,7 +3,7 @@
 #include <math.h>
 #include <cuda.h>
 
-#define N 3600 
+#define N 36000 
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
@@ -13,7 +13,7 @@ __global__ void matrix_vector_multi_gpu_1_1(double *A_d)
 	
 	for (int i = 0; i<=N; i+=1) {
 		A_d[i] = cos(DEG_TO_RAD(deg));
-		deg+=0.1;
+		deg+=0.01;
 	}
 }
 
