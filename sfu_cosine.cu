@@ -7,12 +7,14 @@
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void matrix_vector_multi_gpu_1_1(double *A_d)
+__global__ void matrix_vector_multi_gpu_1_1(double *A_d, double *B_d)
 {
 	double deg = 0.0;	
 	
 	for (int i = 0; i<=N; i+=1) {
-		A_d[i] = __cosf(DEG_TO_RAD(deg));
+		double radius = DEG_TO_RAD(deg);
+		A_d[i] = __cosf(radius);
+		B_d[i] = cos(radius);
 		deg+=0.1;
 	}
 }
@@ -21,11 +23,13 @@ __global__ void matrix_vector_multi_gpu_1_1(double *A_d)
 int main()
 {
 	int i;
-	double A[N];   //HOST
-	double *A_d;     //DEVICE
+	double A[N];   // HOST
+	double B[N];   // HOST
+	double *A_d;   // DEVICE
+	double *B_d;   // DEVICE
 	FILE *outputfile;
 
-	outputfile = fopen("output_sfu_cosine.txt", "w"); 
+	outputfile = fopen("output.txt", "w"); 
 	if (outputfile == NULL) {
 		printf("cannot open file! \n");
 		exit(1);
@@ -35,20 +39,24 @@ int main()
         dim3 threads(1,1,1);
 
 	cudaMalloc( (void**) &A_d, N*sizeof(double));
+	cudaMalloc( (void**) &B_d, N*sizeof(double));
 	
 	cudaMemcpy(A_d, A, N*sizeof(double), cudaMemcpyHostToDevice); 
+	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	matrix_vector_multi_gpu_1_1<<< blocks, threads >>>(A_d);
+	matrix_vector_multi_gpu_1_1<<< blocks, threads >>>(A_d, B_d);
 
         cudaMemcpy(A, A_d, N*sizeof(double), cudaMemcpyDeviceToHost);
+        cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
 	
 	for(i=0;i<=N;i+=1){
-		fprintf(outputfile,"%f \n",A[i]);
+		fprintf(outputfile,"%d %.16f %.16f\n",i, A[i], B[i]);
 	}
 
 	fclose(outputfile);
 
         cudaFree(A_d);
+        cudaFree(B_d);
 
     return 0;
 }
