@@ -7,7 +7,7 @@
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void matrix_vector_multi_gpu_1_1(double *A_d, double *B_d)
+__global__ void sfu_and_normal_cosine_function(double *A_d, double *B_d)
 {
 	double deg = 0.0;	
 	
@@ -44,7 +44,7 @@ int main()
 	cudaMemcpy(A_d, A, N*sizeof(double), cudaMemcpyHostToDevice); 
 	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	matrix_vector_multi_gpu_1_1<<< blocks, threads >>>(A_d, B_d);
+	sfu_and_normal_cosine_function<<< blocks, threads >>>(A_d, B_d);
 
         cudaMemcpy(A, A_d, N*sizeof(double), cudaMemcpyDeviceToHost);
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
