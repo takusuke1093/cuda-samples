@@ -7,14 +7,14 @@
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void sfu_and_normal_cosine_function(double *A_d, double *B_d)
+__global__ void sfu_and_normal_sine_function(double *A_d, double *B_d)
 {
 	double deg = 0.0;	
 	
 	for (int i = 0; i<=N; i+=1) {
 		double radius = DEG_TO_RAD(deg);
-		A_d[i] = __cosf(radius);
-		B_d[i] = cos(radius);
+		A_d[i] = __sinf(radius);
+		B_d[i] = sin(radius);
 		deg+=0.1;
 	}
 }
@@ -29,7 +29,7 @@ int main()
 	double *B_d;   // DEVICE
 	FILE *outputfile;
 
-	outputfile = fopen("output_cosine.txt", "w"); 
+	outputfile = fopen("output_sine.txt", "w"); 
 	if (outputfile == NULL) {
 		printf("cannot open file! \n");
 		exit(1);
@@ -44,7 +44,7 @@ int main()
 	cudaMemcpy(A_d, A, N*sizeof(double), cudaMemcpyHostToDevice); 
 	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	sfu_and_normal_cosine_function<<< blocks, threads >>>(A_d, B_d);
+	sfu_and_normal_sine_function<<< blocks, threads >>>(A_d, B_d);
 
         cudaMemcpy(A, A_d, N*sizeof(double), cudaMemcpyDeviceToHost);
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
