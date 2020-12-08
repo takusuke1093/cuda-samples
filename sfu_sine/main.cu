@@ -7,7 +7,7 @@
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void normal_sine_function(double *B_d, double *radius_d)
+__global__ void sfu_sine_function(double *B_d, double *radius_d)
 {
 	for (int i = 0; i<=N; i+=1) {
 		B_d[i] = __sinf(radius_d[i]);
@@ -45,7 +45,7 @@ int main()
 	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
 	cudaMemcpy(radius_d, radius, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	normal_sine_function<<< blocks, threads >>>(B_d, radius_d);
+	sfu_sine_function<<< blocks, threads >>>(B_d, radius_d);
 
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
 	
