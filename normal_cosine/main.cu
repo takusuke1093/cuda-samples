@@ -7,15 +7,10 @@
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void sfu_and_normal_cosine_function(double *A_d, double *B_d)
+__global__ void normal_cosine_function(double *B_d, double *radius_d)
 {
-	double deg = 0.0;	
-	
 	for (int i = 0; i<=N; i+=1) {
-		double radius = DEG_TO_RAD(deg);
-		A_d[i] = __cosf(radius);
-		B_d[i] = cos(radius);
-		deg+=0.1;
+		B_d[i] = cos(radius_d[i]);
 	}
 }
 
@@ -23,10 +18,11 @@ __global__ void sfu_and_normal_cosine_function(double *A_d, double *B_d)
 int main()
 {
 	int i;
-	double A[N];   // HOST
-	double B[N];   // HOST
-	double *A_d;   // DEVICE
-	double *B_d;   // DEVICE
+	double B[N];      // HOST
+	double radius[N];    // HOST
+	double *B_d;      // DEVICE
+	double *radius_d; // DEVICE
+	double deg = 0.0;
 	FILE *outputfile;
 
 	outputfile = fopen("output_cosine.txt", "w"); 
@@ -35,28 +31,32 @@ int main()
 		exit(1);
 	}
 
+	for (int i = 0; i <= N; i+=1) {
+		radius[i] = DEG_TO_RAD(deg);
+		deg += 0.1;
+	}
+
         dim3 blocks(1,1,1);
         dim3 threads(1,1,1);
 
-	cudaMalloc( (void**) &A_d, N*sizeof(double));
 	cudaMalloc( (void**) &B_d, N*sizeof(double));
+	cudaMalloc( (void**) &radius_d, N*sizeof(double));
 	
-	cudaMemcpy(A_d, A, N*sizeof(double), cudaMemcpyHostToDevice); 
 	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
+	cudaMemcpy(radius_d, radius, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	sfu_and_normal_cosine_function<<< blocks, threads >>>(A_d, B_d);
+	normal_cosine_function<<< blocks, threads >>>(B_d, radius_d);
 
-        cudaMemcpy(A, A_d, N*sizeof(double), cudaMemcpyDeviceToHost);
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
 	
 	for(i=0;i<=N;i+=1){
-		fprintf(outputfile,"%d %.16f %.16f\n",i, A[i], B[i]);
+		fprintf(outputfile,"%d %.16f\n",i, B[i]);
 	}
 
 	fclose(outputfile);
 
-        cudaFree(A_d);
         cudaFree(B_d);
+        cudaFree(radius_d);
 
     return 0;
 }
