@@ -7,12 +7,11 @@
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void normal_cosine_function1_256(double *B_d, double *radius_d)
+__global__ void normal_cosine_function10_360(double *B_d, double *radius_d)
 {
-	int t = threadIdx.x;
-	int T = blockDim.x;
-	for (int i = t; i <= N; i += T)
-		B_d[i] = cos(radius_d[i]);
+	int thread_index = (blockIdx.x * 360) + threadIdx.x;
+
+	B_d[thread_index] = cos(radius_d[thread_index]);
 }
 
 
@@ -20,7 +19,7 @@ int main()
 {
 	int i;
 	double B[N];      // HOST
-	double radius[N];    // HOST
+	double radius[N]; // HOST
 	double *B_d;      // DEVICE
 	double *radius_d; // DEVICE
 	double deg = 0.0;
@@ -28,7 +27,7 @@ int main()
 
 	outputfile = fopen("./outputs/10_360_cos.txt", "w"); 
 	if (outputfile == NULL) {
-		printf("cannot open file! \n");
+		printf("cannot open either directory or file! \n");
 		exit(1);
 	}
 
@@ -46,7 +45,7 @@ int main()
 	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
 	cudaMemcpy(radius_d, radius, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	normal_cosine_function1_256<<< blocks, threads >>>(B_d, radius_d);
+	normal_cosine_function10_360<<< blocks, threads >>>(B_d, radius_d);
 
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
 	
