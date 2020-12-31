@@ -3,13 +3,22 @@
 #include <math.h>
 #include <cuda.h>
 
+#define BLOCK_X 10
+#define BLOCK_Y 10
+#define BLOCK_Z 1
+
+#define THREAD_X 360
+#define THREAD_Y 1 
+#define THREAD_Z 1
+
 #define N 3600 
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
 __global__ void normal_cosine_function10_360(double *B_d, double *radius_d)
 {
-	int thread_index = (blockIdx.x * 360) + threadIdx.x;
+	int blockId = (gridDim.x * blockIdx.y) + blockIdx.x;
+	int thread_index = (blockId * (blockDim.x * blockDim.y)) + (threadIdx.y * blockDim.x) + threadIdx.x;
 
 	B_d[thread_index] = cos(radius_d[thread_index]);
 }
@@ -31,13 +40,13 @@ int main()
 		exit(1);
 	}
 
-	for (int i = 0; i <= N; i+=1) {
+	for (int i = 0; i < N; i+=1) {
 		radius[i] = DEG_TO_RAD(deg);
-		deg += 0.1;
+		deg += 360 /(double) N;
 	}
 
-        dim3 blocks(10,1,1);
-        dim3 threads(360,1,1);
+        dim3 blocks(BLOCK_X,BLOCK_Y,BLOCK_Z);
+        dim3 threads(THREAD_X,THREAD_Y,THREAD_Z);
 
 	cudaMalloc( (void**) &B_d, N*sizeof(double));
 	cudaMalloc( (void**) &radius_d, N*sizeof(double));
@@ -49,7 +58,7 @@ int main()
 
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
 	
-	for(i=0;i<=N;i+=1){
+	for(i = 0; i < N; i += 1){
 		fprintf(outputfile,"%d %.16f\n",i, B[i]);
 	}
 
