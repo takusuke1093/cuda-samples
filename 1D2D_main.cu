@@ -3,22 +3,21 @@
 #include <math.h>
 #include <cuda.h>
 
-#define BLOCK_X 10
-#define BLOCK_Y 10
+#define BLOCK_X 100
+#define BLOCK_Y 1
 #define BLOCK_Z 1
 
-#define THREAD_X 360
-#define THREAD_Y 1 
+#define THREAD_X 6
+#define THREAD_Y 6 
 #define THREAD_Z 1
 
 #define N 3600 
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void normal_cosine_function10_360(double *B_d, double *radius_d)
+__global__ void cosine100_1_6_6(double *B_d, double *radius_d)
 {
-	int blockId = (gridDim.x * blockIdx.y) + blockIdx.x;
-	int thread_index = (blockId * (blockDim.x * blockDim.y)) + (threadIdx.y * blockDim.x) + threadIdx.x;
+	int thread_index = (blockIdx.x * blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x;
 
 	B_d[thread_index] = cos(radius_d[thread_index]);
 }
@@ -34,7 +33,7 @@ int main()
 	double deg = 0.0;
 	FILE *outputfile;
 
-	outputfile = fopen("./outputs/10_360_cos.txt", "w"); 
+	outputfile = fopen("./outputs/cosine100_1_6_6.txt", "w"); 
 	if (outputfile == NULL) {
 		printf("cannot open either directory or file! \n");
 		exit(1);
@@ -54,14 +53,16 @@ int main()
 	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
 	cudaMemcpy(radius_d, radius, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	normal_cosine_function10_360<<< blocks, threads >>>(B_d, radius_d);
+	cosine100_1_6_6<<< blocks, threads >>>(B_d, radius_d);
 
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
 	
 	for(i = 0; i < N; i += 1){
 		fprintf(outputfile,"%d %.16f\n",i, B[i]);
 	}
-
+	for(i = 0; i < 5; i += 1){
+		printf("%d %.16f\n",i, B[i]);
+	}
 	fclose(outputfile);
 
         cudaFree(B_d);
