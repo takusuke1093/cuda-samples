@@ -3,19 +3,19 @@
 #include <math.h>
 #include <cuda.h>
 
-#define BLOCK_X 5
-#define BLOCK_Y 2
-#define BLOCK_Z 2
+#define BLOCK_X 10
+#define BLOCK_Y 10
+#define BLOCK_Z 10
 
-#define THREAD_X 6
-#define THREAD_Y 6 
-#define THREAD_Z 5
+#define THREAD_X 10
+#define THREAD_Y 10
+#define THREAD_Z 1
 
-#define N 3600 
+#define N 100000
 #define PI 3.14159265358979323846
 #define DEG_TO_RAD(deg)  ((deg) / 180.0 * (PI))
 
-__global__ void cosine5_2_2__6_6_5(double *B_d, double *radius_d)
+__global__ void cosine10_10_10__10_10_1(double *B_d, double *radius_d)
 {
 	int threads_per_block = blockDim.x * blockDim.y * blockDim.z;
 	int threads_count_before_current_block = (threads_per_block * gridDim.x * gridDim.y * blockIdx.z) + (threads_per_block * gridDim.x * blockIdx.y) + threads_per_block * blockIdx.x;
@@ -35,7 +35,7 @@ int main()
 	double deg = 0.0;
 	FILE *outputfile;
 
-	outputfile = fopen("./outputs/cosine5_2_2__6_6_5.txt", "w"); 
+	outputfile = fopen("./outputs/cosine10_10_10__10_10_1.txt", "w"); 
 	if (outputfile == NULL) {
 		printf("cannot open either directory or file! \n");
 		exit(1);
@@ -55,7 +55,7 @@ int main()
 	cudaMemcpy(B_d, B, N*sizeof(double), cudaMemcpyHostToDevice); 
 	cudaMemcpy(radius_d, radius, N*sizeof(double), cudaMemcpyHostToDevice); 
 	
-	cosine5_2_2__6_6_5<<< blocks, threads >>>(B_d, radius_d);
+	cosine10_10_10__10_10_1<<< blocks, threads >>>(B_d, radius_d);
 
         cudaMemcpy(B, B_d, N*sizeof(double), cudaMemcpyDeviceToHost);
 	
